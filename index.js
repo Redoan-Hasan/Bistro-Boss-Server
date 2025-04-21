@@ -29,10 +29,18 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     const menuCollection = client.db("Bistro-Boss-DB").collection("Menu");
+    const reviewsCollection = client.db("Bistro-Boss-DB").collection("Reviews");
 
     // fetching all menu items 
     app.get("/menu", async (req, res) => {
       const result = await menuCollection.find().toArray();
+      res.send(result);
+    });
+
+
+    // fetching all reviews
+    app.get("/testimonials", async (req, res) => {
+      const result = await reviewsCollection.find().toArray();
       res.send(result);
     });
 
