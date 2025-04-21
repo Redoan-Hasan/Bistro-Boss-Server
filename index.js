@@ -28,9 +28,13 @@ async function run() {
     // await client.connect();
     // Send a ping to confirm a successful connection
 
-    const menuCollection = client.db("Bistro-Boss-DB").collection("menu");
+    const menuCollection = client.db("Bistro-Boss-DB").collection("Menu");
 
-
+    // fetching all menu items 
+    app.get("/menu", async (req, res) => {
+      const result = await menuCollection.find().toArray();
+      res.send(result);
+    });
 
 
 
