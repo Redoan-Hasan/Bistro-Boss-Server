@@ -44,10 +44,22 @@ async function run() {
       res.send(result);
     });
 
+    // getting the total count of data 
+    app.get("/menuCount", async (req, res) => {
+      const filter = req?.query.filter;
+      const result = await menuCollection.countDocuments({ category: filter });
+      res.send({ count: result });
+    });
+
+
+
 
     // api for fetching menus by category with pagination 
     app.get("/allMenus", async (req, res) => {
-      const result = await menuCollection.find().toArray();
+      const page = parseInt(req?.query.page) - 1;
+      const size = parseInt(req?.query.size);
+      const filter = req?.query.filter;
+      const result = await menuCollection.find({ category: filter }).skip(page * size).limit(size).toArray();
       res.send(result);
     });
 
