@@ -45,6 +45,12 @@ async function run() {
     });
 
 
+    // api for fetching menus by category with pagination 
+    app.get("/allMenus", async (req, res) => {
+      const result = await menuCollection.find().toArray();
+      res.send(result);
+    });
+
 
     await client.db("admin").command({ ping: 1 });
     console.log(
