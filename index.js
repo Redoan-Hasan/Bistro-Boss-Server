@@ -9,9 +9,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-
-const uri =
-  `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.qhz4s.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.qhz4s.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -32,12 +30,11 @@ async function run() {
     const reviewsCollection = client.db("Bistro-Boss-DB").collection("Reviews");
     const cartsCollection = client.db("Bistro-Boss-DB").collection("Carts");
 
-    // fetching all menu items 
+    // fetching all menu items
     app.get("/menu", async (req, res) => {
       const result = await menuCollection.find().toArray();
       res.send(result);
     });
-
 
     // fetching all reviews
     app.get("/testimonials", async (req, res) => {
@@ -45,20 +42,23 @@ async function run() {
       res.send(result);
     });
 
-    // getting the total count of data 
+    // getting the total count of data
     app.get("/menuCount", async (req, res) => {
       const filter = req?.query.filter;
       const result = await menuCollection.countDocuments({ category: filter });
       res.send({ count: result });
     });
 
-
-    // api for fetching menus by category with pagination 
+    // api for fetching menus by category with pagination
     app.get("/allMenus", async (req, res) => {
       const page = parseInt(req?.query.page) - 1;
       const size = parseInt(req?.query.size);
       const filter = req?.query.filter;
-      const result = await menuCollection.find({ category: filter }).skip(page * size).limit(size).toArray();
+      const result = await menuCollection
+        .find({ category: filter })
+        .skip(page * size)
+        .limit(size)
+        .toArray();
       res.send(result);
     });
 
@@ -67,15 +67,15 @@ async function run() {
       const item = req.body;
       const result = await cartsCollection.insertOne(item);
       res.send(result);
-    })
+    });
 
-    // getting all the carts 
+    // getting all the carts
     app.get("/carts", async (req, res) => {
-      const result = await cartsCollection.find().toArray();
+      const email = req?.query?.email;
+      const query = { userEmail: email };
+      const result = await cartsCollection.find(query).toArray();
       res.send(result);
-    })
-
-
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
