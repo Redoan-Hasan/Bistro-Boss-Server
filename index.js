@@ -30,6 +30,7 @@ async function run() {
 
     const menuCollection = client.db("Bistro-Boss-DB").collection("Menu");
     const reviewsCollection = client.db("Bistro-Boss-DB").collection("Reviews");
+    const cartsCollection = client.db("Bistro-Boss-DB").collection("Carts");
 
     // fetching all menu items 
     app.get("/menu", async (req, res) => {
@@ -52,8 +53,6 @@ async function run() {
     });
 
 
-
-
     // api for fetching menus by category with pagination 
     app.get("/allMenus", async (req, res) => {
       const page = parseInt(req?.query.page) - 1;
@@ -62,6 +61,14 @@ async function run() {
       const result = await menuCollection.find({ category: filter }).skip(page * size).limit(size).toArray();
       res.send(result);
     });
+
+    // getting the cart items
+    app.post("/carts", async (req, res) => {
+      const item = req.body;
+      const result = await cartsCollection.insertOne(item);
+      res.send(result);
+    })
+
 
 
     await client.db("admin").command({ ping: 1 });
