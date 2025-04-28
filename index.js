@@ -29,6 +29,7 @@ async function run() {
     const menuCollection = client.db("Bistro-Boss-DB").collection("Menu");
     const reviewsCollection = client.db("Bistro-Boss-DB").collection("Reviews");
     const cartsCollection = client.db("Bistro-Boss-DB").collection("Carts");
+    const  usersCollection = client.db("Bistro-Boss-DB").collection("Users");
 
     // fetching all menu items
     app.get("/menu", async (req, res) => {
@@ -82,10 +83,17 @@ async function run() {
     app.delete("/MyCart/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const result = await cartsCollection.deleteOne(query);
+      const result = await usersCollection.deleteOne(query);
       res.send(result);
     });
 
+
+    // api for saving user info in database 
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
