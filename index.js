@@ -162,6 +162,19 @@ async function run() {
       res.send(result);
     });
 
+    // api for checking is logged in user is admin or not 
+    app.get("/users/admin/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if(email !== req.decoded?.email){
+        return res.status(403).send({message:"Unaturized access"})
+      }
+      const query = {email : email};
+      const user = await usersCollection.findOne(query);
+      const result = { admin: user?.role === "admin" };
+      console.log(result);
+      res.send(result);
+    })
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
