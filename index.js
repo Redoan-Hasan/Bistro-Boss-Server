@@ -1,13 +1,19 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const e = require("express");
 const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173"
+    ]
+  })
+);
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.qhz4s.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -31,6 +37,34 @@ async function run() {
     const reviewsCollection = client.db("Bistro-Boss-DB").collection("Reviews");
     const cartsCollection = client.db("Bistro-Boss-DB").collection("Carts");
     const  usersCollection = client.db("Bistro-Boss-DB").collection("Users");
+    // ----------------------------
+    // -------------JWT------------
+    // ----------------------------
+
+    app.post('/jwt', (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      res.send({ token });
+    })
+
+
+    // checking token with middleware 
+    const verifyToken = (req, res, next) => {
+      const authorization = req.headers.authorization;
+      if (!authorization) {
+        return res.status(401).send({ message: 'unauthorized access' });
+      }
+      const token = authorization.split(' ')[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(403).send({ message: 'forbidden access' });
+        }
+        req.decoded = decoded;
+        next();
+      })
+      
+    }
+
 
     // fetching all menu items
     app.get("/menu", async (req, res) => {
@@ -102,7 +136,7 @@ async function run() {
     });
 
     // getting all the users from database 
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyToken, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
