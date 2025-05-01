@@ -66,6 +66,21 @@ async function run() {
     }
 
 
+    // ensuring admin through middleware 
+    const isAdmin = async(req, res, next) => {
+      const email = req?.decoded?.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== 'admin') {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+      next();
+    }
+
+
+
+
+
     // fetching all menu items
     app.get("/menu", async (req, res) => {
       const result = await menuCollection.find().toArray();
@@ -136,7 +151,7 @@ async function run() {
     });
 
     // getting all the users from database 
-    app.get("/users", verifyToken, async (req, res) => {
+    app.get("/users", verifyToken, isAdmin, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
@@ -166,7 +181,7 @@ async function run() {
     app.get("/users/admin/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       if(email !== req.decoded?.email){
-        return res.status(403).send({message:"Unaturized access"})
+        return res.status(403).send({message:"Unauthorized access"})
       }
       const query = {email : email};
       const user = await usersCollection.findOne(query);
