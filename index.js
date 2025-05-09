@@ -81,11 +81,19 @@ async function run() {
 
 
 
-    // fetching all menu items
+    // fetching all menu items for admin
     app.get("/menu", async (req, res) => {
       const result = await menuCollection.find().toArray();
       res.send(result);
     });
+
+    // deleteing one item from menu with admin 
+    app.delete("/deleteMenuItem/:id", verifyToken, isAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await menuCollection.deleteOne(query);
+      res.send(result);
+    })
 
     // posting new menu item from admin panel 
     app.post("/singleMenu",verifyToken, isAdmin, async (req, res) => {
