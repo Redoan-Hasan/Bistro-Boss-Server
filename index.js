@@ -95,6 +95,14 @@ async function run() {
       res.send(result);
     })
 
+    // fetching one single data for manage items route to edit 
+    app.get("/editMenuItem/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await menuCollection.findOne(query);
+      res.send(result);
+    });
+
     // posting new menu item from admin panel 
     app.post("/singleMenu",verifyToken, isAdmin, async (req, res) => {
       const newItem = req.body;
