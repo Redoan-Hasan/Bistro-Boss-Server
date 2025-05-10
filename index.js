@@ -87,7 +87,7 @@ async function run() {
       res.send(result);
     });
 
-    // deleteing one item from menu with admin 
+    // deleting one item from menu with admin 
     app.delete("/deleteMenuItem/:id", verifyToken, isAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -97,10 +97,72 @@ async function run() {
 
     // fetching one single data for manage items route to edit 
     app.get("/editMenuItem/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await menuCollection.findOne(query);
-      res.send(result);
+      try {
+        const id = req.params.id;
+        console.log("received id", id);
+        
+        // First try with string ID
+        let result = await menuCollection.findOne({ _id: id });
+        
+        // If not found, try with ObjectId
+        if (!result && ObjectId.isValid(id)) {
+          result = await menuCollection.findOne({ _id: new ObjectId(id) });
+        }
+        
+        if (!result) {
+          return res.status(404).send({ error: "Menu item not found" });
+        }
+        
+        console.log(result);
+        res.send(result);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send({ error: error.message });
+      }
+    });
+
+    // edit a single menu data from admin panel 
+    app.patch("/updateMenuItem/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const updatedItem = req.body;
+        
+        // Try string ID first without upsert
+        let filter = { _id: id };
+        let result = await menuCollection.updateOne(filter, {
+          $set: {
+            name: updatedItem.name,
+            price: updatedItem.price,
+            recipe: updatedItem.recipe,
+            image: updatedItem.image,
+            category: updatedItem.category,
+          }
+        });
+        
+        // If no document matched, try with ObjectId without upsert
+        if (result.matchedCount === 0 && ObjectId.isValid(id)) {
+          filter = { _id: new ObjectId(id) };
+          result = await menuCollection.updateOne(filter, {
+            $set: {
+              name: updatedItem.name,
+              price: updatedItem.price,
+              recipe: updatedItem.recipe,
+              image: updatedItem.image,
+              category: updatedItem.category,
+            }
+          });
+        }
+        
+        // If still no match, return an error
+        if (result.matchedCount === 0) {
+          return res.status(404).send({ error: "Menu item not found" });
+        }
+        
+        res.send(result);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send({ error: error.message });
+      }
     });
 
     // posting new menu item from admin panel 
