@@ -165,6 +165,29 @@ async function run() {
       }
     });
 
+
+    // delete one specific menu item 
+    app.delete("/deleteMenuItem/:id", async (req, res) => {
+  const id = req.params.id;
+  let result;
+
+  if (ObjectId.isValid(id)) {
+    // Try with ObjectId
+    result = await menuCollection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount > 0) {
+      return res.send({ success: true, message: "Deleted by ObjectId" });
+    }
+  }
+
+  // Try with string _id as fallback
+  result = await menuCollection.deleteOne({ _id: id });
+  if (result.deletedCount > 0) {
+    return res.send({ success: true, message: "Deleted by string id" });
+  }
+
+  return res.status(404).send({ success: false, message: "Item not found" });
+});
+
     // posting new menu item from admin panel 
     app.post("/singleMenu",verifyToken, isAdmin, async (req, res) => {
       const newItem = req.body;
